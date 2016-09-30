@@ -39,7 +39,6 @@ using Test.ADAL.Common;
 using Test.ADAL.Common.Unit;
 using Test.ADAL.NET.Unit.Mocks;
 
-
 namespace Test.ADAL.NET.Unit
 {
     [TestClass]
@@ -1168,19 +1167,13 @@ namespace Test.ADAL.NET.Unit
                     {"grant_type", "client_credentials"}
                 }
             });
-            try
-            {
+
                 AuthenticationResult result = await context.AcquireTokenAsync(TestConstants.DefaultResource, credential);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            //Assert.IsNotNull(result.AccessToken);
+                Assert.IsNotNull(result.AccessToken);
 
             // cache look up
             var result2 = await context.AcquireTokenAsync(TestConstants.DefaultResource, credential);
-            //Assert.AreEqual(result.AccessToken, result2.AccessToken);
+            Assert.AreEqual(result.AccessToken, result2.AccessToken);
 
             try
             {
@@ -1506,54 +1499,50 @@ namespace Test.ADAL.NET.Unit
         [Description("Telemetry tests Default Dispatcher")]
         public void TelemetryDefaultDispatcher()
         {
-            Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry telemetry =
-Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
+            Telemetry telemetry = Telemetry.GetInstance();
             Assert.IsNotNull(telemetry);
 
             DispatcherImplement dispatcher = new DispatcherImplement();
             telemetry.RegisterDispatcher(dispatcher, true);
             dispatcher.clear();
-            string requestIDThree = telemetry.RegisterNewRequest();
+            string requestIDThree = telemetry.CreateRequestId();
             telemetry.StartEvent(requestIDThree, "event_3");
             DefaultEvent testDefaultEvent3 = new DefaultEvent("event_3");
-            //Assert.IsNotNull(DefaultEvent.ApplicationName);
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent3, "event_3");
 
             telemetry.StartEvent(requestIDThree, "event_4");
             DefaultEvent testDefaultEvent4 = new DefaultEvent("event_4");
-            //Assert.IsNotNull(DefaultEvent.ApplicationName);
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent4, "event_4");
 
             telemetry.StartEvent(requestIDThree, "event_5");
             DefaultEvent testDefaultEvent5 = new DefaultEvent("event_5");
-            //Assert.IsNotNull(DefaultEvent.ApplicationName);
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent5, "event_5");
-            telemetry.flush(requestIDThree);
+            telemetry.Flush(requestIDThree);
             Assert.AreEqual(dispatcher.Count, 3);
 
             dispatcher.file();
         }
 
+
         [TestMethod]
         [Description("Test case for checking CacheEvent")]
         public void TelemetryCacheEvent()
         {
-            Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry telemetry =
-Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
+            Telemetry telemetry = Telemetry.GetInstance();
             Assert.IsNotNull(telemetry);
 
             DispatcherImplement dispatcher = new DispatcherImplement();
             telemetry.RegisterDispatcher(dispatcher, false);
             dispatcher.clear();
-            string requestIDThree = telemetry.RegisterNewRequest();
+            string requestIDThree = telemetry.CreateRequestId();
             telemetry.StartEvent(requestIDThree, "cache_lookup");
             CacheEvent testDefaultEvent = new CacheEvent("cache_lookup");
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent, "cache_lookup");
-            telemetry.flush(requestIDThree);
+            telemetry.Flush(requestIDThree);
             Assert.AreEqual(dispatcher.Count, 1);
 
             bool result = dispatcher.Cachefile();
@@ -1565,14 +1554,13 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
         [Description("Test case for checking APIEvent")]
         public void TelemetryApiEvent()
         {
-            Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry telemetry =
-Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
+            Telemetry telemetry = Telemetry.GetInstance();
             Assert.IsNotNull(telemetry);
 
             DispatcherImplement dispatcher = new DispatcherImplement();
             telemetry.RegisterDispatcher(dispatcher, false);
             dispatcher.clear();
-            string requestIDThree = telemetry.RegisterNewRequest();
+            string requestIDThree = telemetry.CreateRequestId();
             telemetry.StartEvent(requestIDThree, "api_event");
             Authenticator authenticator = new Authenticator(TestConstants.DefaultAuthorityCommonTenant, true);
             UserInfo userinfo = new UserInfo();
@@ -1581,7 +1569,7 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
             ApiEvent testDefaultEvent = new ApiEvent(authenticator, userinfo, "tenantId", "3");
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent, "cache_lookup");
-            telemetry.flush(requestIDThree);
+            telemetry.Flush(requestIDThree);
             Assert.AreEqual(dispatcher.Count, 1);
 
             bool result = dispatcher.Apifile();
@@ -1593,19 +1581,18 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
         [Description("Telemetry tests Aggregate Dispatcher for a single event in requestID")]
         public void TelemetryAggregateDispatcherSingleEventRequestID()
         {
-            Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry telemetry =
-Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
+            Telemetry telemetry = Telemetry.GetInstance();
             Assert.IsNotNull(telemetry);
 
             DispatcherImplement dispatcher = new DispatcherImplement();
             telemetry.RegisterDispatcher(dispatcher, false);
             dispatcher.clear();
-            string requestIDThree = telemetry.RegisterNewRequest();
+            string requestIDThree = telemetry.CreateRequestId();
             telemetry.StartEvent(requestIDThree, "event_3");
             DefaultEvent testDefaultEvent = new DefaultEvent("event_3");
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent, "event_3");
-            telemetry.flush(requestIDThree);
+            telemetry.Flush(requestIDThree);
             Assert.AreEqual(dispatcher.Count, 1);
 
             dispatcher.file();
@@ -1615,14 +1602,13 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
         [Description("Telemetry tests for Aggregate Dispatcher for multiple events in requestID")]
         public void TelemetryAggregateDispatcherMultipleEventsRequestId()
         {
-            Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry telemetry =
-Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
+            Telemetry telemetry = Telemetry.GetInstance();
             Assert.IsNotNull(telemetry);
 
             DispatcherImplement dispatcher = new DispatcherImplement();
             telemetry.RegisterDispatcher(dispatcher, false);
             dispatcher.clear();
-            string requestIDThree = telemetry.RegisterNewRequest();
+            string requestIDThree = telemetry.CreateRequestId();
             telemetry.StartEvent(requestIDThree, "event_3");
             DefaultEvent testDefaultEvent3 = new DefaultEvent("event_3");
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
@@ -1637,7 +1623,7 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
             DefaultEvent testDefaultEvent5 = new DefaultEvent("event_5");
             Assert.IsNotNull(DefaultEvent.ApplicationVersion);
             telemetry.StopEvent(requestIDThree, testDefaultEvent5, "event_5");
-            telemetry.flush(requestIDThree);
+            telemetry.Flush(requestIDThree);
             Assert.AreEqual(dispatcher.Count, 1);
 
             dispatcher.file();
@@ -1664,7 +1650,7 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
 
             public void file()
             {
-                using (TextWriter tw = new StreamWriter("C:/Users/abgun/test.txt"))
+                using (TextWriter tw = new StreamWriter("test.txt"))
                 {
                     foreach (List<Tuple<string, string>> list in storeList)
                     {
@@ -1691,7 +1677,7 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
                 Cacheitems.Add("response_time");
                 Cacheitems.Add("request_id");
 
-                using (TextWriter tw = new StreamWriter("C:/Users/abgun/test.txt"))
+                using (TextWriter tw = new StreamWriter("test.txt"))
                 {
                     foreach (List<Tuple<string, string>> list in storeList)
                     {
@@ -1717,8 +1703,8 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
                 Apiitems.Add("event_name");
                 Apiitems.Add("application_name");
                 Apiitems.Add("application_version");
-                Apiitems.Add("x-client-version");
-                Apiitems.Add("x-client-sku");
+                Apiitems.Add("sdk_version");
+                Apiitems.Add("sdk_platform");
                 Apiitems.Add("device_id");
                 Apiitems.Add("correlation_id");
                 Apiitems.Add("start_time");
@@ -1739,8 +1725,9 @@ Microsoft.IdentityModel.Clients.ActiveDirectory.Telemetry.GetInstance();
                 Apiitems.Add("tenant_id");
                 Apiitems.Add("idp");
                 Apiitems.Add("login_hint");
+                Apiitems.Add("api_id");
 
-                using (TextWriter tw = new StreamWriter("C:/Users/abgun/test.txt"))
+                using (TextWriter tw = new StreamWriter("test.txt"))
                 {
                     foreach (List<Tuple<string, string>> list in storeList)
                     {
